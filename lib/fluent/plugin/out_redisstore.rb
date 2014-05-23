@@ -73,6 +73,14 @@ module Fluent
       }
     end
 
+    def to_redisvalue(value)
+      if value.nil? or value.kind_of?(String) or value.kind_of?(Fixnum)
+        value
+      else
+        value.to_json
+      end
+    end
+
     def operation_for_zset(record)
       now = Time.now.to_i
       if @fixed_key_value
@@ -92,7 +100,7 @@ module Fluent
       end
       sk = @key_prefix + k + @key_suffix
       
-      @redis.zadd sk , s, v
+      @redis.zadd sk , s, to_redisvalue(v)
       if @key_expire > 0
         @redis.expire sk , @key_expire
       end
@@ -118,7 +126,7 @@ module Fluent
       end
       sk = @key_prefix + k + @key_suffix
               
-      @redis.sadd sk, v
+      @redis.sadd sk, to_redisvalue(v)
       if @key_expire > 0
         @redis.expire sk, @key_expire
       end
@@ -138,9 +146,9 @@ module Fluent
       sk = @key_prefix + k + @key_suffix
 
       if @order == 'asc'
-        @redis.rpush sk, v
+        @redis.rpush sk, to_redisvalue(v)
       else
-        @redis.lpush sk, v
+        @redis.lpush sk, to_redisvalue(v)
       end             
       if @key_expire > 0
         @redis.expire sk, @key_expire
@@ -164,7 +172,7 @@ module Fluent
       end
       sk = @key_prefix + k + @key_suffix
          
-      @redis.set sk, v
+      @redis.set sk, to_redisvalue(v)
       if @key_expire > 0
         @redis.expire sk, @key_expire
       end
