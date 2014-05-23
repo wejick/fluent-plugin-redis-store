@@ -61,6 +61,8 @@ module Fluent
                   operation_for_list(record)
                 elsif @store_type == 'string'
                   operation_for_string(record)
+                elsif @store_type == 'publish'
+                  operation_for_publish(record)
                 end
               rescue NoMethodError => e
                 puts e
@@ -176,6 +178,22 @@ module Fluent
       if @key_expire > 0
         @redis.expire sk, @key_expire
       end
+    end
+
+    def operation_for_publish(record)
+      if @fixed_key_value
+        k = @fixed_key_value
+      else
+        k = traverse(record, @key_name).to_s
+      end
+      if @value_name == nil
+        v = record
+      else
+        v = traverse(record, @value_name)
+      end
+      sk = @key_prefix + k + @key_suffix
+
+      @redis.publish sk, to_redisvalue(v)
     end
 
     def generate_zremrangebyrank_script(key, maxlen, order)
