@@ -1,7 +1,27 @@
 module Fluent
-  class RedisOutput < BufferedOutput
-    Fluent::Plugin.register_output('redisstore', self)
-    attr_reader :host, :port, :db_number, :redis, :timeout, :key_prefix, :key_suffix, :store_type, :key_name, :fixed_key_value, :score_name, :value_name, :key_expire, :value_expire, :value_length, :order
+  class RedisStoreOutput < BufferedOutput
+    Fluent::Plugin.register_output('redis_store', self)
+
+    # redis connection
+    config_param :host,      :string,  :default => '127.0.0.1'
+    config_param :path,      :string,  :default => nil
+    config_param :port,      :integer, :default => 6379
+    config_param :db_number, :integer, :default => 0
+    config_param :timeout,   :float,   :default => 5.0
+
+    # redis command and parameters
+    config_param :format_type,     :string,  :default => 'plain'
+    config_param :key_prefix,      :string,  :default => ''
+    config_param :key_suffix,      :string,  :default => ''
+    config_param :store_type,      :string,  :default => 'zset'
+    config_param :key_name,        :string,  :default => nil
+    config_param :fixed_key_name, :string,  :default => nil
+    config_param :score_name,      :string,  :default => nil
+    config_param :value_name,      :string,  :default => ''
+    config_param :key_expire,      :integer, :default => -1
+    config_param :value_expire,    :integer, :default => -1
+    config_param :value_length,    :integer, :default => -1
+    config_param :order,           :string,  :default => 'asc'
 
     def initialize
       super
@@ -12,29 +32,26 @@ module Fluent
     def configure(conf)
       super
 
-      @host = conf.has_key?('host') ? conf['host'] : 'localhost'
-      @port = conf.has_key?('port') ? conf['port'].to_i : 6379
-      @db_number = conf.has_key?('db_number') ? conf['db_number'].to_i : nil
-      @timeout = conf.has_key?('timeout') ? conf['timeout'].to_f : 5.0
+      if @key_name == nil and @fixed_key_name == nil
+        raise Fluent::ConfigError, "either key_name or fixed_key_name is required"
+      end
 
-      @key_prefix = conf.has_key?('key_prefix') ? conf['key_prefix'] : ''
-      @key_suffix = conf.has_key?('key_suffix') ? conf['key_suffix'] : ''
-      @store_type = conf.has_key?('store_type') ? conf['store_type'] : 'zset'
-      @key_name = conf['key_name']
-      @fixed_key_value = conf.has_key?('fixed_key_value') ? conf['fixed_key_value'] : nil
-      @score_name = conf.has_key?('score_name') ? conf['score_name'] : nil
-      @value_name = conf.has_key?('value_name') ? conf['value_name'] : nil
-      @value_name = nil if @value_name and @value_name.empty?
-      @key_expire = conf.has_key?('key_expire') ? conf['key_expire'].to_i : -1
-      @value_expire = conf.has_key?('value_expire') ? conf['value_expire'].to_i : -1
-      @value_length = conf.has_key?('value_length') ? conf['value_length'].to_i : -1
-      @order = conf.has_key?('order') ? conf['order'] : 'asc'
+      if @store_type == 'zset'
+        if @score_name == nil
+          raise Fluent::ConfigError, "score_name is required"
+        end
+      end
     end
 
     def start
       super
-      @redis = Redis.new(:host => @host, :port => @port, :timeout => @timeout,
-                         :thread_safe => true, :db => @db_number)
+      if @path
+        @redis = Redis.new(:path => @path,
+                           :timeout => @timeout, :thread_safe => true, :db => @db_number)
+      else
+        @redis = Redis.new(:host => @host, :port => @port,
+                           :timeout => @timeout, :thread_safe => true, :db => @db_number)
+      end
     end
 
     def shutdown
@@ -53,15 +70,16 @@ module Fluent
             MessagePack::Unpacker.new(io).each { |message|
               begin
                 (tag, record) = message
-                if @store_type == 'zset'
+                case @store_type
+                when 'zset'
                   operation_for_zset(record)
-                elsif @store_type == 'set'
+                when 'set'
                   operation_for_set(record)
-                elsif @store_type == 'list'
+                when 'list'
                   operation_for_list(record)
-                elsif @store_type == 'string'
+                when 'string'
                   operation_for_string(record)
-                elsif @store_type == 'publish'
+                when 'publish'
                   operation_for_publish(record)
                 end
               rescue NoMethodError => e
@@ -75,114 +93,57 @@ module Fluent
       }
     end
 
-    def to_redisvalue(value)
-      if value.nil? or value.kind_of?(String) or value.kind_of?(Fixnum)
-        value
-      else
-        value.to_json
-      end
-    end
-
     def operation_for_zset(record)
-      now = Time.now.to_i
-      if @fixed_key_value
-        k = @fixed_key_value
-      else
-        k = traverse(record, @key_name).to_s
+      key = get_key_from(record)
+      value = get_value_from(record)
+      score = get_score_from(record)
+      @redis.zadd key, score, value
+
+      set_key_expire key
+      if 0 < @value_expire
+        now = Time.now.to_i
+        @redis.zremrangebyscore key , '-inf' , (now - @value_expire)
       end
-      if @score_name
-        s = traverse(record, @score_name)
-      else
-        s = now
-      end
-      if @value_name == nil
-        v = record
-      else
-        v = traverse(record, @value_name)
-      end
-      sk = @key_prefix + k + @key_suffix
-      
-      @redis.zadd sk , s, to_redisvalue(v)
-      if @key_expire > 0
-        @redis.expire sk , @key_expire
-      end
-      if @value_expire > 0
-        @redis.zremrangebyscore sk , '-inf' , (now - @value_expire)
-      end
-      if @value_length > 0
-        script = generate_zremrangebyrank_script(sk, @value_length, @order)
+      if 0 < @value_length
+        script = generate_zremrangebyrank_script(key, @value_length, @order)
         @redis.eval script
       end
     end
 
     def operation_for_set(record)
-      if @fixed_key_value
-        k = @fixed_key_value
-      else
-        k = traverse(record, @key_name).to_s
-      end
-      if @value_name == nil
-        v = record
-      else
-        v = traverse(record, @value_name)
-      end
-      sk = @key_prefix + k + @key_suffix
-              
-      @redis.sadd sk, to_redisvalue(v)
-      if @key_expire > 0
-        @redis.expire sk, @key_expire
-      end
+      key = get_key_from(record)
+      value = get_value_from(record)
+      @redis.sadd key, value
+      set_key_expire key
     end
 
     def operation_for_list(record)
-      if @fixed_key_value
-        k = @fixed_key_value
-      else
-        k = traverse(record, @key_name).to_s
-      end
-      if @value_name == nil
-        v = record
-      else
-        v = traverse(record, @value_name)
-      end
-      sk = @key_prefix + k + @key_suffix
+      key = get_key_from(record)
+      value = get_value_from(record)
 
       if @order == 'asc'
-        @redis.rpush sk, to_redisvalue(v)
+        @redis.rpush key, value
       else
-        @redis.lpush sk, to_redisvalue(v)
-      end             
-      if @key_expire > 0
-        @redis.expire sk, @key_expire
+        @redis.lpush key, value
       end
-      if @value_length > 0
-        script = generate_ltrim_script(sk, @value_length, @order)
+      set_key_expire key
+      if 0 < @value_length
+        script = generate_ltrim_script(key, @value_length, @order)
         @redis.eval script
-      end 
+      end
     end
 
     def operation_for_string(record)
-      if @fixed_key_value
-        k = @fixed_key_value
-      else
-        k = traverse(record, @key_name).to_s
-      end
-      if @value_name == nil
-        v = record
-      else
-        v = traverse(record, @value_name)
-      end
-      sk = @key_prefix + k + @key_suffix
-         
-      @redis.set sk, to_redisvalue(v)
-      if @key_expire > 0
-        @redis.expire sk, @key_expire
-      end
+      key = get_key_from(record)
+      value = get_value_from(record)
+      @redis.set key, value
+
+      set_key_expire key
     end
 
     def operation_for_publish(record)
-      if @fixed_key_value
-        k = @fixed_key_value
+      if @fixed_key_name
+        k = @fixed_key_name
       else
         k = traverse(record, @key_name).to_s
       end
@@ -241,5 +202,44 @@ module Fluent
       }
       return val
     end
+
+    def get_key_from(record)
+      if @fixed_key_name
+        k = @fixed_key_name
+      else
+        k = traverse(record, @key_name).to_s
+      end
+      key = @key_prefix + k + @key_suffix
+
+      raise Fluent::ConfigError, "need key" if key == ''
+      key
+    end
+
+    def get_value_from(record)
+      value = traverse(record, @value_name)
+      case @format_type
+      when 'json'
+        value.to_json
+      when 'msgpack'
+        value.to_msgpack
+      else
+        value
+      end
+    end
+
+    def get_score_from(record)
+      if @score_name
+        traverse(record, @score_name)
+      else
+        Time.now.to_i
+      end
+    end
+
+    def set_key_expire(key)
+      if 0 < @key_expire
+        @redis.expire key, @key_expire
+      end
+    end
+
   end
 end
