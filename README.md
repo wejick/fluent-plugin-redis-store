@@ -40,6 +40,7 @@ For _key_, the plugin supports either way;
    You can do this simply using `key` option in td-agent configuration file.
 
    ```apache
+   type redis_store
    key userdata
    ```
    
@@ -53,6 +54,7 @@ For _key_, the plugin supports either way;
    and you want to use each name of user, you can use `key_path` option.
 
    ```apache
+   type redis_store
    key_path user.name
    ```
 
@@ -61,6 +63,7 @@ For _key_, the plugin supports either way;
 In addition, `key_prefix` and `key_suffix` are useful in some cases. Both are available either `key` and `key_path`
 
    ```apache
+   type redis_store
    key_path user.name
    key_prefix ouruser.
    key_suffix .accesslog
