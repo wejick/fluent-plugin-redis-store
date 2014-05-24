@@ -66,70 +66,70 @@ class RedisStoreOutputTest < Test::Unit::TestCase
   CONFIG_OMIT_KEY = %[
   ]
   CONFIG_OMIT_SCORE = %[
-    key_name a
+    key_path a
   ]
   CONFIG1 = %[
-    key_name a
-    score_name b
+    key_path a
+    score_path b
   ]
   CONFIG2 = %[
     host 192.168.2.3
     port 9999
     db_number 3
     timeout 7
-    fixed_key_name a
-    score_name b
+    key a
+    score_path b
   ]
   CONFIG3 = %[
     path /tmp/foo.sock
-    fixed_key_name a
-    score_name b
+    key a
+    score_path b
   ]
 
-  CONFIG_OMIT_VALUE_NAME = %[
+  CONFIG_OMIT_VALUE_PATH = %[
     format_type plain
     store_type string
-    key_name   user
+    key_path   user
   ]
   CONFIG_KEY_VALUE_PATHS = %[
     format_type plain
     store_type string
-    key_name   user.name
-    value_name stat.attack
+    key_path   user.name
+    value_path stat.attack
     key_expire 3
   ]
   CONFIG_JSON = %[
     format_type json
     store_type string
-    key_name   user
+    key_path   user
   ]
   CONFIG_MSGPACK = %[
     format_type msgpack
     store_type string
-    key_name   user
+    key_path   user
   ]
   CONFIG_LIST_ASC = %[
     format_type plain
     store_type list
-    key_name   user
+    key_path   user
   ]
   CONFIG_LIST_DESC = %[
     format_type plain
     store_type list
-    key_name   user
+    key_path   user
     order      desc
   ]
   CONFIG_SET = %[
     format_type plain
     store_type set
-    key_name   user
+    key_path   user
     order      desc
   ]
   CONFIG_ZSET = %[
     format_type plain
     store_type zset
-    key_name   user
-    score_name result
+    key_path   user
+    score_path result
   ]
 
   def create_driver(conf)
@@ -148,10 +148,10 @@ class RedisStoreOutputTest < Test::Unit::TestCase
     assert_equal '', d.instance.key_prefix
     assert_equal '', d.instance.key_suffix
     assert_equal 'zset', d.instance.store_type
-    assert_equal 'a', d.instance.key_name
-    assert_equal nil, d.instance.fixed_key_name
-    assert_equal 'b', d.instance.score_name
-    assert_equal '', d.instance.value_name
+    assert_equal 'a', d.instance.key_path
+    assert_equal nil, d.instance.key
+    assert_equal 'b', d.instance.score_path
+    assert_equal '', d.instance.value_path
     assert_equal -1, d.instance.key_expire
     assert_equal -1, d.instance.value_expire
     assert_equal -1, d.instance.value_length
@@ -164,8 +164,8 @@ class RedisStoreOutputTest < Test::Unit::TestCase
     assert_equal nil, d.instance.path
     assert_equal 3, d.instance.db_number
     assert_equal 7.0, d.instance.timeout
-    assert_equal nil, d.instance.key_name
-    assert_equal 'a', d.instance.fixed_key_name
+    assert_equal nil, d.instance.key_path
+    assert_equal 'a', d.instance.key
 
     # path
     d = create_driver(CONFIG3)
@@ -198,8 +198,8 @@ class RedisStoreOutputTest < Test::Unit::TestCase
   end
 
   # it should return whole message
-  def test_omit_value_name
-    d = create_driver(CONFIG_OMIT_VALUE_NAME)
+  def test_omit_value_path
+    d = create_driver(CONFIG_OMIT_VALUE_PATH)
     message = {
       'user' => 'george',
       'stat' => { 'attack' => 7 }
@@ -312,5 +312,20 @@ class RedisStoreOutputTest < Test::Unit::TestCase
     assert_equal "george", $key
     assert_equal 81, $score
     assert_equal message, message
+  end
+
+  def test_empty_key
+    config = %[
+      format_type plain
+      store_type string
+      key_path   none
+    ]
+
+    d = create_driver(config)
+    message = { 'user' => 'george' }
+    d.emit(message, get_time)
+    assert_raise(Fluent::ConfigError) do
+      d.run
+    end
   end
 end
