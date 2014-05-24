@@ -76,7 +76,8 @@ class RedisStoreOutputTest < Test::Unit::TestCase
     assert_equal "127.0.0.1", d.instance.host
     assert_equal 6379, d.instance.port
     assert_equal nil, d.instance.path
-    assert_equal 0, d.instance.db_number
+    assert_equal nil, d.instance.password
+    assert_equal 0, d.instance.db
     assert_equal 5.0, d.instance.timeout
     assert_equal 'plain', d.instance.format_type
     assert_equal '', d.instance.key_prefix
@@ -96,7 +97,8 @@ class RedisStoreOutputTest < Test::Unit::TestCase
     config = %[
       host 192.168.2.3
       port 9999
-      db_number 3
+      password abc
+      db 3
       timeout 7
       key a
       score_path b
@@ -105,7 +107,8 @@ class RedisStoreOutputTest < Test::Unit::TestCase
     assert_equal "192.168.2.3", d.instance.host
     assert_equal 9999, d.instance.port
     assert_equal nil, d.instance.path
-    assert_equal 3, d.instance.db_number
+    assert_equal 'abc', d.instance.password
+    assert_equal 3, d.instance.db
     assert_equal 7.0, d.instance.timeout
     assert_equal nil, d.instance.key_path
     assert_equal 'a', d.instance.key

@@ -4,9 +4,10 @@ module Fluent
 
     # redis connection
     config_param :host,      :string,  :default => '127.0.0.1'
-    config_param :path,      :string,  :default => nil
     config_param :port,      :integer, :default => 6379
-    config_param :db_number, :integer, :default => 0
+    config_param :path,      :string,  :default => nil
+    config_param :password,  :string,  :default => nil
+    config_param :db,        :integer, :default => 0
     config_param :timeout,   :float,   :default => 5.0
 
     # redis command and parameters
@@ -46,11 +47,11 @@ module Fluent
     def start
       super
       if @path
-        @redis = Redis.new(:path => @path,
-                           :timeout => @timeout, :thread_safe => true, :db => @db_number)
+        @redis = Redis.new(:path => @path, :password => @parsword,
+                           :timeout => @timeout, :thread_safe => true, :db => @db)
       else
-        @redis = Redis.new(:host => @host, :port => @port,
-                           :timeout => @timeout, :thread_safe => true, :db => @db_number)
+        @redis = Redis.new(:host => @host, :port => @port, :password => @parsword,
+                           :timeout => @timeout, :thread_safe => true, :db => @db)
       end
     end
 
