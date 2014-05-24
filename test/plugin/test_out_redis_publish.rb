@@ -50,6 +50,7 @@ class Redis
   end
 
   def publish(channel, message)
+    $command = :publish
     $channel = channel
     $message = message
   end
@@ -327,6 +328,25 @@ class RedisStoreOutputTest < Test::Unit::TestCase
     assert_equal :zadd, $command
     assert_equal "george", $key
     assert_equal get_time, $score
+    assert_equal message, message
+  end
+
+  def test_publish
+    config = %[
+      format_type plain
+      store_type publish
+      key_path   user
+    ]
+
+    d = create_driver(config)
+    message = {
+      'user' => 'george'
+    }
+    d.emit(message, get_time)
+    d.run
+
+    assert_equal :publish, $command
+    assert_equal "george", $channel
     assert_equal message, message
   end
 

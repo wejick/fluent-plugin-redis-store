@@ -136,19 +136,9 @@ module Fluent
     end
 
     def operation_for_publish(record)
-      if @key
-        k = @key
-      else
-        k = traverse(record, @key_path).to_s
-      end
-      if @value_path == nil
-        v = record
-      else
-        v = traverse(record, @value_path)
-      end
-      sk = @key_prefix + k + @key_suffix
-
-      @redis.publish sk, to_redisvalue(v)
+      key = get_key_from(record)
+      value = get_value_from(record)
+      @redis.publish key, value
     end
 
     def generate_zremrangebyrank_script(key, maxlen, order)
