@@ -36,12 +36,6 @@ module Fluent
       if @key_path == nil and @key == nil
         raise Fluent::ConfigError, "either key_path or key is required"
       end
-
-      if @store_type == 'zset'
-        if @score_path == nil
-          raise Fluent::ConfigError, "score_path is required"
-        end
-      end
     end
 
     def start
@@ -60,8 +54,7 @@ module Fluent
     end
 
     def format(tag, time, record)
-      identifier = [tag, time].join(".")
-      [identifier, record].to_msgpack
+      [tag, time, record].to_msgpack
     end
 
     def write(chunk)
@@ -70,10 +63,10 @@ module Fluent
           begin
             MessagePack::Unpacker.new(io).each { |message|
               begin
-                (tag, record) = message
+                (tag, time, record) = message
                 case @store_type
                 when 'zset'
-                  operation_for_zset(record)
+                  operation_for_zset(record, time)
                 when 'set'
                   operation_for_set(record)
                 when 'list'
@@ -94,10 +87,10 @@ module Fluent
       }
     end
 
-    def operation_for_zset(record)
+    def operation_for_zset(record, time)
       key = get_key_from(record)
       value = get_value_from(record)
-      score = get_score_from(record)
+      score = get_score_from(record, time)
       @redis.zadd key, score, value
 
       set_key_expire key
@@ -228,11 +221,11 @@ module Fluent
       end
     end
 
-    def get_score_from(record)
+    def get_score_from(record, time)
       if @score_path
         traverse(record, @score_path)
       else
-        Time.now.to_i
+        time
       end
     end
 

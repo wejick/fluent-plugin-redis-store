@@ -128,10 +128,6 @@ class RedisStoreOutputTest < Test::Unit::TestCase
     assert_raise(Fluent::ConfigError) do
       create_driver(%[])
     end
-
-    assert_raise(Fluent::ConfigError) do
-      create_driver(%[key_path a])
-    end
   end
 
 #  def test_write
@@ -309,6 +305,28 @@ class RedisStoreOutputTest < Test::Unit::TestCase
     assert_equal :zadd, $command
     assert_equal "george", $key
     assert_equal 81, $score
+    assert_equal message, message
+  end
+
+  def test_zset_with_no_score_path
+    config = %[
+      format_type plain
+      store_type zset
+      key_path   user
+    ]
+
+    d = create_driver(config)
+    message = {
+      'user' => 'george',
+      'stat' => { 'attack' => 7 },
+      'result' => 81
+    }
+    d.emit(message, get_time)
+    d.run
+
+    assert_equal :zadd, $command
+    assert_equal "george", $key
+    assert_equal get_time, $score
     assert_equal message, message
   end
 
