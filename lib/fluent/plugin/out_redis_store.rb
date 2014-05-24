@@ -11,7 +11,7 @@ module Fluent
     config_param :timeout,   :float,   :default => 5.0
 
     # redis command and parameters
-    config_param :format_type,  :string,  :default => 'plain'
+    config_param :format_type,  :string,  :default => 'json'
     config_param :store_type,   :string,  :default => 'zset'
     config_param :key_prefix,   :string,  :default => ''
     config_param :key_suffix,   :string,  :default => ''

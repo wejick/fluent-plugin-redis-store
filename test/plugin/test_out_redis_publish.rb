@@ -80,7 +80,7 @@ class RedisStoreOutputTest < Test::Unit::TestCase
     assert_equal nil, d.instance.password
     assert_equal 0, d.instance.db
     assert_equal 5.0, d.instance.timeout
-    assert_equal 'plain', d.instance.format_type
+    assert_equal 'json', d.instance.format_type
     assert_equal '', d.instance.key_prefix
     assert_equal '', d.instance.key_suffix
     assert_equal 'zset', d.instance.store_type
@@ -243,7 +243,7 @@ class RedisStoreOutputTest < Test::Unit::TestCase
 
     assert_equal :rpush, $command
     assert_equal "george", $key
-    assert_equal message, message
+    assert_equal message, $message
   end
 
   def test_list_desc
@@ -263,7 +263,7 @@ class RedisStoreOutputTest < Test::Unit::TestCase
 
     assert_equal :lpush, $command
     assert_equal "george", $key
-    assert_equal message, message
+    assert_equal message, $message
   end
 
   def test_set
@@ -283,7 +283,7 @@ class RedisStoreOutputTest < Test::Unit::TestCase
 
     assert_equal :sadd, $command
     assert_equal "george", $key
-    assert_equal message, message
+    assert_equal message, $message
   end
 
   def test_zset
@@ -306,7 +306,7 @@ class RedisStoreOutputTest < Test::Unit::TestCase
     assert_equal :zadd, $command
     assert_equal "george", $key
     assert_equal 81, $score
-    assert_equal message, message
+    assert_equal message, $message
   end
 
   def test_zset_with_no_score_path
@@ -328,7 +328,7 @@ class RedisStoreOutputTest < Test::Unit::TestCase
     assert_equal :zadd, $command
     assert_equal "george", $key
     assert_equal get_time, $score
-    assert_equal message, message
+    assert_equal message, $message
   end
 
   def test_publish
@@ -347,7 +347,7 @@ class RedisStoreOutputTest < Test::Unit::TestCase
 
     assert_equal :publish, $command
     assert_equal "george", $channel
-    assert_equal message, message
+    assert_equal message, $message
   end
 
   def test_empty_key
