@@ -63,82 +63,16 @@ class RedisStoreOutputTest < Test::Unit::TestCase
     Fluent::Test.setup
   end
 
-  CONFIG_OMIT_KEY = %[
-  ]
-  CONFIG_OMIT_SCORE = %[
-    key_path a
-  ]
-  CONFIG1 = %[
-    key_path a
-    score_path b
-  ]
-  CONFIG2 = %[
-    host 192.168.2.3
-    port 9999
-    db_number 3
-    timeout 7
-    key a
-    score_path b
-  ]
-  CONFIG3 = %[
-    path /tmp/foo.sock
-    key a
-    score_path b
-  ]
-
-  CONFIG_OMIT_VALUE_PATH = %[
-    format_type plain
-    store_type string
-    key_path   user
-  ]
-  CONFIG_KEY_VALUE_PATHS = %[
-    format_type plain
-    store_type string
-    key_path   user.name
-    value_path stat.attack
-    key_expire 3
-  ]
-  CONFIG_JSON = %[
-    format_type json
-    store_type string
-    key_path   user
-  ]
-  CONFIG_MSGPACK = %[
-    format_type msgpack
-    store_type string
-    key_path   user
-  ]
-  CONFIG_LIST_ASC = %[
-    format_type plain
-    store_type list
-    key_path   user
-  ]
-  CONFIG_LIST_DESC = %[
-    format_type plain
-    store_type list
-    key_path   user
-    order      desc
-  ]
-  CONFIG_SET = %[
-    format_type plain
-    store_type set
-    key_path   user
-    order      desc
-  ]
-  CONFIG_ZSET = %[
-    format_type plain
-    store_type zset
-    key_path   user
-    score_path result
-  ]
-
   def create_driver(conf)
     Fluent::Test::BufferedOutputTestDriver.new(Fluent::RedisStoreOutput).configure(conf)
   end
 
-  def test_configure
-    # defaults
-    d = create_driver(CONFIG1)
+  def test_configure_defaults
+    config = %[
+      key_path a
+      score_path b
+    ]
+    d = create_driver(config)
     assert_equal "127.0.0.1", d.instance.host
     assert_equal 6379, d.instance.port
     assert_equal nil, d.instance.path
@@ -156,9 +90,18 @@ class RedisStoreOutputTest < Test::Unit::TestCase
     assert_equal -1, d.instance.value_expire
     assert_equal -1, d.instance.value_length
     assert_equal 'asc', d.instance.order
+  end
 
-    # host port db
-    d = create_driver(CONFIG2)
+  def test_configure_host_port_db
+    config = %[
+      host 192.168.2.3
+      port 9999
+      db_number 3
+      timeout 7
+      key a
+      score_path b
+    ]
+    d = create_driver(config)
     assert_equal "192.168.2.3", d.instance.host
     assert_equal 9999, d.instance.port
     assert_equal nil, d.instance.path
@@ -166,19 +109,25 @@ class RedisStoreOutputTest < Test::Unit::TestCase
     assert_equal 7.0, d.instance.timeout
     assert_equal nil, d.instance.key_path
     assert_equal 'a', d.instance.key
+  end
 
-    # path
-    d = create_driver(CONFIG3)
+  def test_configure_path
+    config = %[
+      path /tmp/foo.sock
+      key a
+      score_path b
+    ]
+    d = create_driver(config)
     assert_equal "/tmp/foo.sock", d.instance.path
   end
 
   def test_configure_exception
     assert_raise(Fluent::ConfigError) do
-      create_driver(CONFIG_OMIT_KEY)
+      create_driver(%[])
     end
 
     assert_raise(Fluent::ConfigError) do
-      create_driver(CONFIG_OMIT_SCORE)
+      create_driver(%[key_path a])
     end
   end
 
@@ -199,7 +148,12 @@ class RedisStoreOutputTest < Test::Unit::TestCase
 
   # it should return whole message
   def test_omit_value_path
-    d = create_driver(CONFIG_OMIT_VALUE_PATH)
+    config = %[
+      format_type plain
+      store_type string
+      key_path   user
+    ]
+    d = create_driver(config)
     message = {
       'user' => 'george',
       'stat' => { 'attack' => 7 }
@@ -214,7 +168,14 @@ class RedisStoreOutputTest < Test::Unit::TestCase
   end
 
   def test_key_value_paths
-    d = create_driver(CONFIG_KEY_VALUE_PATHS)
+    config = %[
+      format_type plain
+      store_type string
+      key_path   user.name
+      value_path stat.attack
+      key_expire 3
+    ]
+    d = create_driver(config)
     message = {
       'user' => { 'name' => 'george' },
       'stat' => { 'attack' => 7 }
@@ -229,7 +190,12 @@ class RedisStoreOutputTest < Test::Unit::TestCase
   end
 
   def test_json
-    d = create_driver(CONFIG_JSON)
+    config = %[
+      format_type json
+      store_type string
+      key_path   user
+    ]
+    d = create_driver(config)
     message = {
       'user' => 'george',
       'stat' => { 'attack' => 7 }
@@ -243,7 +209,12 @@ class RedisStoreOutputTest < Test::Unit::TestCase
   end
 
   def test_msgpack
-    d = create_driver(CONFIG_MSGPACK)
+    config = %[
+      format_type msgpack
+      store_type string
+      key_path   user
+    ]
+    d = create_driver(config)
     message = {
       'user' => 'george',
       'stat' => { 'attack' => 7 }
@@ -257,7 +228,12 @@ class RedisStoreOutputTest < Test::Unit::TestCase
   end
 
   def test_list_asc
-    d = create_driver(CONFIG_LIST_ASC)
+    config = %[
+      format_type plain
+      store_type list
+      key_path   user
+    ]
+    d = create_driver(config)
     message = {
       'user' => 'george',
       'stat' => { 'attack' => 7 }
@@ -271,7 +247,13 @@ class RedisStoreOutputTest < Test::Unit::TestCase
   end
 
   def test_list_desc
-    d = create_driver(CONFIG_LIST_DESC)
+    config = %[
+      format_type plain
+      store_type list
+      key_path   user
+      order      desc
+    ]
+    d = create_driver(config)
     message = {
       'user' => 'george',
       'stat' => { 'attack' => 7 }
@@ -285,7 +267,13 @@ class RedisStoreOutputTest < Test::Unit::TestCase
   end
 
   def test_set
-    d = create_driver(CONFIG_SET)
+    config = %[
+      format_type plain
+      store_type set
+      key_path   user
+      order      desc
+    ]
+    d = create_driver(config)
     message = {
       'user' => 'george',
       'stat' => { 'attack' => 7 }
@@ -299,7 +287,14 @@ class RedisStoreOutputTest < Test::Unit::TestCase
   end
 
   def test_zset
-    d = create_driver(CONFIG_ZSET)
+    config = %[
+      format_type plain
+      store_type zset
+      key_path   user
+      score_path result
+    ]
+
+    d = create_driver(config)
     message = {
       'user' => 'george',
       'stat' => { 'attack' => 7 },
