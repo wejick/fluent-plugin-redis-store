@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 Gem::Specification.new do |gem|
     gem.name        = "fluent-plugin-redis-store"
+    gem.email       = "hanai@pokelabo.co.jp"
     gem.version     = "0.1.0"
     gem.authors     = ["moaikids", "HANAI Tohru aka pokehanai"]
     gem.licenses    = ["Apache License Version 2.0"]
