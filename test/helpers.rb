@@ -22,7 +22,7 @@ unless ENV.has_key?('VERBOSE')
   $log = nulllogger
 end
 
-require 'fluent/plugin/out_redisstore'
+require 'fluent/plugin/out_redis_store'
 
 class Test::Unit::TestCase
 end
