@@ -41,10 +41,10 @@ module Fluent
     def start
       super
       if @path
-        @redis = Redis.new(:path => @path, :password => @parsword,
+        @redis = Redis.new(:path => @path, :password => @password,
                            :timeout => @timeout, :thread_safe => true, :db => @db)
       else
-        @redis = Redis.new(:host => @host, :port => @port, :password => @parsword,
+        @redis = Redis.new(:host => @host, :port => @port, :password => @password,
                            :timeout => @timeout, :thread_safe => true, :db => @db)
       end
     end
