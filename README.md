@@ -92,7 +92,7 @@ Configuration
 
 | Key        | Type   | Required?   |                  Default | Description                                       |
 | :----      | :----- | :---------- | :----------------------- | :------------                                     |
-| `url`      | string | Optional    | redis://127.0.0.1:6379/0 | URL to Redis server                               |
+| `host`      | string | Optional    | 127.0.0.1               | host name of Redis server                               |
 | `port`     | int    | Optional    |                     6379 | port number of Redis server                       |
 | `password` | string | Optional    |                          | password for Redis connection                     |
 | `path`     | string | Optional    |                          | To connect via Unix socket, try '/tmp/redis.sock' |
