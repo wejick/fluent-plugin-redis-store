@@ -23,7 +23,7 @@ module Fluent
     config_param :value_expire,   :integer, :default => -1
     config_param :value_length,   :integer, :default => -1
     config_param :order,          :string,  :default => 'asc'
-    config_param :flush_interval, :time, :default => 1
+    config_set_default :flush_interval, 1
 
     def initialize
       super
