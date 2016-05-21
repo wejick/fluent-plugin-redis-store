@@ -11,18 +11,19 @@ module Fluent
     config_param :timeout,   :float,   :default => 5.0
 
     # redis command and parameters
-    config_param :format_type,  :string,  :default => 'json'
-    config_param :store_type,   :string,  :default => 'zset'
-    config_param :key_prefix,   :string,  :default => ''
-    config_param :key_suffix,   :string,  :default => ''
-    config_param :key,          :string,  :default => nil
-    config_param :key_path,     :string,  :default => nil
-    config_param :score_path,   :string,  :default => nil
-    config_param :value_path,   :string,  :default => ''
-    config_param :key_expire,   :integer, :default => -1
-    config_param :value_expire, :integer, :default => -1
-    config_param :value_length, :integer, :default => -1
-    config_param :order,        :string,  :default => 'asc'
+    config_param :format_type,    :string,  :default => 'json'
+    config_param :store_type,     :string,  :default => 'zset'
+    config_param :key_prefix,     :string,  :default => ''
+    config_param :key_suffix,     :string,  :default => ''
+    config_param :key,            :string,  :default => nil
+    config_param :key_path,       :string,  :default => nil
+    config_param :score_path,     :string,  :default => nil
+    config_param :value_path,     :string,  :default => ''
+    config_param :key_expire,     :integer, :default => -1
+    config_param :value_expire,   :integer, :default => -1
+    config_param :value_length,   :integer, :default => -1
+    config_param :order,          :string,  :default => 'asc'
+    config_set_default :flush_interval, 1
 
     def initialize
       super
