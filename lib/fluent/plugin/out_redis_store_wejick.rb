@@ -1,6 +1,6 @@
 module Fluent
   class RedisStoreOutput < BufferedOutput
-    Fluent::Plugin.register_output('redis_store', self)
+    Fluent::Plugin.register_output('redis_store_wejick', self)
 
     # redis connection
     config_param :host,      :string,  :default => '127.0.0.1'
@@ -11,19 +11,19 @@ module Fluent
     config_param :timeout,   :float,   :default => 5.0
 
     # redis command and parameters
-    config_param :format_type,    :string,  :default => 'json'
-    config_param :store_type,     :string,  :default => 'zset'
-    config_param :key_prefix,     :string,  :default => ''
-    config_param :key_suffix,     :string,  :default => ''
-    config_param :key,            :string,  :default => nil
-    config_param :key_path,       :string,  :default => nil
-    config_param :score_path,     :string,  :default => nil
-    config_param :value_path,     :string,  :default => ''
-    config_param :key_expire,     :integer, :default => -1
-    config_param :value_expire,   :integer, :default => -1
-    config_param :value_length,   :integer, :default => -1
-    config_param :order,          :string,  :default => 'asc'
-    config_set_default :flush_interval, 1
+    config_param :format_type,  :string,  :default => 'json'
+    config_param :store_type,   :string,  :default => 'zset'
+    config_param :key_prefix,   :string,  :default => ''
+    config_param :key_suffix,   :string,  :default => ''
+    config_param :key,          :string,  :default => nil
+    config_param :key_path,     :string,  :default => nil
+    config_param :score_path,   :string,  :default => nil
+    config_param :value_path,   :string,  :default => ''
+    config_param :key_expire,   :integer, :default => -1
+    config_param :value_expire, :integer, :default => -1
+    config_param :value_length, :integer, :default => -1
+    config_param :order,        :string,  :default => 'asc'
+    config_param :prevent_duplicate, :integer, :default =>0
 
     def initialize
       super
@@ -116,6 +116,9 @@ module Fluent
       key = get_key_from(record)
       value = get_value_from(record)
 
+      if 0 < @prevent_duplicate
+        @redis.lrem key.to_s, 1, value.to_s
+      end
       if @order == 'asc'
         @redis.rpush key, value
       else
@@ -125,7 +128,7 @@ module Fluent
       if 0 < @value_length
         script = generate_ltrim_script(key, @value_length, @order)
         @redis.eval script
-      end
+      end      
     end
 
     def operation_for_string(record)
