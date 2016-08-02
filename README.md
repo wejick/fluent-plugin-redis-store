@@ -8,9 +8,7 @@ Redis Output Plugin For fluentd
 Background
 ----------
 
-This is folked project from [fluent-plugin-redisstore][].
-
-[fluent-plugin-redisstore]: https://github.com/moaikids/fluent-plugin-redisstore
+Forked from redis-store which forked from redisstore plugin
 
 Features
 --------
@@ -111,8 +109,9 @@ Configuration
 | `store_type`  | string | zset                     | `string`/`list`/`set`/`zset`/`publish`               |
 | `format_type` | string | plain                    | format type for _value_ (`plain`/`json`/`msgpack`)   |
 | `key_expire`  | int    | -1                       | If set, the key will be expired in specified seconds |
-| `flush_interval`  | time    | 1                       | Time interval which events will be flushed to Redis |
-| `prevent_duplicate` | (0,1) | 0                   | Prevent duplicated value in one key (list)
+| `flush_interval`  | time    | 1                   | Time interval which events will be flushed to Redis  |
+| `prevent_duplicate` | (0,1) | 0                   | Prevent duplicated value in one key (list)           |
+| `tidy_string`	| (0,1)  | 0                        | Unescape value                                       |
 Note: either `key` or `key_path` is required.
 
 ### `string` storage specific options
