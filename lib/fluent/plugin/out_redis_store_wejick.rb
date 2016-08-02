@@ -23,12 +23,15 @@ module Fluent
     config_param :value_expire, :integer, :default => -1
     config_param :value_length, :integer, :default => -1
     config_param :order,        :string,  :default => 'asc'
-    config_param :prevent_duplicate, :integer, :default =>0
+    config_param :prevent_duplicate, :integer, :default => 0
+    config_param :only_alphabet,:integer, :default => 0
+    config_param :tidy_string,  :integer, :default => 0
 
     def initialize
       super
       require 'redis'
       require 'msgpack'
+      require 'cgi'
     end
 
     def configure(conf)
@@ -114,8 +117,17 @@ module Fluent
 
     def operation_for_list(record)
       key = get_key_from(record)
-      value = get_value_from(record)
-
+      value = get_value_from(record)      
+            
+      if 0 < @tidy_string
+        value = tidy_up_string(value)
+      end
+      if 0 < @only_alphabet
+        if ( /^[a-zA-Z0-9 ]*$/.match(value) ) != nil
+        else
+          return
+        end
+      end
       if 0 < @prevent_duplicate
         @redis.lrem key.to_s, 1, value.to_s
       end
@@ -143,6 +155,13 @@ module Fluent
       key = get_key_from(record)
       value = get_value_from(record)
       @redis.publish key, value
+    end
+    
+    # unescape and make it to downcase
+    def tidy_up_string(string)
+      string.downcase
+      string = CGI.unescape(string)
+      return string
     end
 
     def generate_zremrangebyrank_script(key, maxlen, order)
