@@ -151,6 +151,7 @@ Copyright
 
 Copyright (c) 2013 moaikids  
 Copyright (c) 2014 HANAI Tohru  
+Copyright (c) 2016 Gian Giovani
 
 License
 -------
