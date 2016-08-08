@@ -1,5 +1,5 @@
 module Fluent
-  class RedisStoreOutput < Output
+  class RedisStoreOutput < BufferedOutput
     Fluent::Plugin.register_output('redis_store_wejick', self)
 
     # redis connection
@@ -120,6 +120,7 @@ module Fluent
       value = get_value_from(record)      
             
       if 0 < @tidy_string
+        $log.warn "tidy_string ",@tidy_string
         value = tidy_up_string(value)
       end
       if 0 < @only_alphabet
@@ -129,6 +130,7 @@ module Fluent
         end
       end
       if 0 < @prevent_duplicate
+        $log.warn "prevent duplicate ", @prevent_duplicate
         @redis.lrem key.to_s, 1, value.to_s
       end
       if @order == 'asc'
@@ -138,8 +140,9 @@ module Fluent
       end
       set_key_expire key
       if 0 < @value_length
+        $log.warn "trim ",@value_length
         script = generate_ltrim_script(key, @value_length, @order)
-        @redis.eval script
+        @redis.eval(script,0)
       end      
     end
 
@@ -183,6 +186,7 @@ module Fluent
     end
 
     def generate_ltrim_script(key, maxlen, order)
+      $log.warn key,maxlen,order,"\n"
       script  = "local key = '" + key.to_s + "'\n"
       script += "local maxlen = " + maxlen.to_s + "\n"
       script += "local order ='" + order.to_s + "'\n"
@@ -243,6 +247,7 @@ module Fluent
     end
 
     def set_key_expire(key)
+    $log.warn "set expire key ", @key_expire
       if 0 < @key_expire
         @redis.expire key, @key_expire
       end
