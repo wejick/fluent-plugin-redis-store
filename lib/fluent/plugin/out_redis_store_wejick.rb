@@ -1,5 +1,5 @@
 module Fluent
-  class RedisStoreOutput < BufferedOutput
+  class RedisStoreOutput < Output
     Fluent::Plugin.register_output('redis_store_wejick', self)
 
     # redis connection

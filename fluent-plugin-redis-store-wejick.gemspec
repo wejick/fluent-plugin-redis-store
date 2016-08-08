@@ -2,7 +2,7 @@
 Gem::Specification.new do |gem|
     gem.name        = "fluent-plugin-redis-store-wejick"
     gem.email       = "wejick@gmail.com"
-    gem.version     = "0.0.2"
+    gem.version     = "0.0.3"
     gem.authors     = ["wejick", "Gian Giovani"]
     gem.licenses    = ["Apache License Version 2.0"]
     gem.summary     = %q{Redis(zset/set/list/string/publish) output plugin for Fluentd}

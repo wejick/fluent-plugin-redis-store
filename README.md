@@ -110,8 +110,6 @@ Configuration
 | `format_type` | string | plain                    | format type for _value_ (`plain`/`json`/`msgpack`)   |
 | `key_expire`  | int    | -1                       | If set, the key will be expired in specified seconds |
 | `flush_interval`  | time    | 1                   | Time interval which events will be flushed to Redis  |
-| `prevent_duplicate` | (0,1) | 0                   | Prevent duplicated value in one key (list)           |
-| `tidy_string`	| (0,1)  | 0                        | Unescape value                                       |
 Note: either `key` or `key_path` is required.
 
 ### `string` storage specific options
@@ -126,7 +124,8 @@ No more options than common options.
 | Key     | Type   | Default                  | Description                         |
 | :----   | :----- | :----------------------- | :------------                       |
 | `order` | string | asc                      | `asc`: **rpush**, `desc`: **lpush** |
-
+| `prevent_duplicate` | (0,1) | 0             | Prevent duplicated value in one key (list)           |
+| `tidy_string`	| (0,1)  | 0                  | Unescape value                                       |
 ### `set` storage specific options
 
 No more options than common options.
