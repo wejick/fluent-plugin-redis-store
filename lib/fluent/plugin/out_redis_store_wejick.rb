@@ -24,8 +24,10 @@ module Fluent
     config_param :value_length, :integer, :default => -1
     config_param :order,        :string,  :default => 'asc'
     config_param :prevent_duplicate, :integer, :default => 0
-    config_param :only_alphabet,:integer, :default => 0
-    config_param :tidy_string,  :integer, :default => 0
+    config_param :only_alphanumeric, :integer, :default => 0
+    config_param :string_tolow,      :integer, :default => 0
+    config_param :string_unescape,   :integer, :default => 0
+    config_param :string_unescape_twice,   :integer, :default => 0
 
     def initialize
       super
@@ -118,11 +120,17 @@ module Fluent
     def operation_for_list(record)
       key = get_key_from(record)
       value = get_value_from(record)      
-            
-      if 0 < @tidy_string
-        value = tidy_up_string(value)
+
+      if 0 < @string_tolow
+        value = lower_string(value)
       end
-      if 0 < @only_alphabet
+      if 0 < @string_unescape
+        value = unescape_string(value)
+        if 0 <@string_unescape_twice
+          value = unescape_string(value)
+        end
+      end
+      if 0 < @only_alphanumeric
         if ( /^[a-zA-Z0-9 ]*$/.match(value) ) != nil
         else
           return
@@ -156,9 +164,11 @@ module Fluent
       @redis.publish key, value
     end
     
-    # unescape and make it to downcase
-    def tidy_up_string(string)
-      string.downcase
+    def lower_string(string)
+      return string.downcase
+    end
+
+    def unescape_string(string)
       string = CGI.unescape(string)
       return string
     end

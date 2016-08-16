@@ -125,7 +125,11 @@ No more options than common options.
 | :----   | :----- | :----------------------- | :------------                       |
 | `order` | string | asc                      | `asc`: **rpush**, `desc`: **lpush** |
 | `prevent_duplicate` | (0,1) | 0             | Prevent duplicated value in one key (list)           |
-| `tidy_string`	| (0,1)  | 0                  | Unescape value                                       |
+| `string_tolow`	    | (0,1)  | 0            | value to lowercase                  |
+| `string_unescape`	  | (0,1)  | 0            | unescape value                      |
+| `string_unescape_twice`	| (0,1)  | 0        | if you need another unescape        |
+| `value_length`      | (0,1)                 | list trimming doesn't honor ordering |
+
 ### `set` storage specific options
 
 No more options than common options.
