@@ -9,6 +9,7 @@ Background
 ----------
 
 Forked from redis-store which forked from redisstore plugin
+I'm using this in high traffic production environment
 
 Features
 --------
