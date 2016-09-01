@@ -2,11 +2,11 @@
 Gem::Specification.new do |gem|
     gem.name        = "fluent-plugin-redis-store-wejick"
     gem.email       = "wejick@gmail.com"
-    gem.version     = "0.0.7"
+    gem.version     = "0.0.8"
     gem.authors     = ["wejick", "Gian Giovani"]
     gem.licenses    = ["Apache-2.0"]
-    gem.summary     = %q{Redis(zset/set/list/string/publish) output plugin for Fluentd (in heavy dev, contains config breaking change)}
-    gem.description = %q{Redis(zset/set/list/string/publish) output plugin for Fluentd, in the process to adding more functionality (not stable)...}
+    gem.summary     = %q{Redis(zset/set/list/string/publish) output plugin for Fluentd}
+    gem.description = %q{Redis(zset/set/list/string/publish) output plugin for Fluentd...}
     gem.homepage    = "https://github.com/wejick/fluent-plugin-redis-store"
 
     gem.files         = `git ls-files`.split($\)

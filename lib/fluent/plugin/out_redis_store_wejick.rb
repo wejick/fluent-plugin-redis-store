@@ -97,6 +97,23 @@ module Fluent
       key = get_key_from(record)
       value = get_value_from(record)
       score = get_score_from(record, time)
+      
+      if 0 < @string_tolow
+        value = lower_string(value)
+      end
+      if 0 < @string_unescape
+        value = unescape_string(value)
+        if 0 <@string_unescape_twice
+          value = unescape_string(value)
+        end
+      end
+      if 0 < @only_alphanumeric
+        if ( /^[a-zA-Z0-9 ]*$/.match(value) ) != nil
+        else
+          return
+        end
+      end
+
       @redis.zadd key, score, value
 
       set_key_expire key
@@ -105,8 +122,8 @@ module Fluent
         @redis.zremrangebyscore key , '-inf' , (now - @value_expire)
       end
       if 0 < @value_length
-        script = generate_zremrangebyrank_script(key, @value_length, @order)
-        @redis.eval script
+        l = -1 - @value_length
+        @redis.zremrangebyrank key, 0, l
       end
     end
 
@@ -171,40 +188,6 @@ module Fluent
     def unescape_string(string)
       string = CGI.unescape(string)
       return string
-    end
-
-    def generate_zremrangebyrank_script(key, maxlen, order)
-      script  = "local key = '" + key.to_s + "'\n"
-      script += "local maxlen = " + maxlen.to_s + "\n"
-      script += "local order ='" + order.to_s + "'\n"
-      script += "local len = tonumber(redis.call('ZCOUNT', key, '-inf', '+inf'))\n"
-      script += "if len > maxlen then\n"
-      script += "    if order == 'asc' then\n"
-      script += "       local l = len - maxlen\n"
-      script += "       if l >= 0 then\n"
-      script += "           return redis.call('ZREMRANGEBYRANK', key, 0, l)\n"
-      script += "       end\n"
-      script += "    else\n"
-      script += "       return redis.call('ZREMRANGEBYRANK', key, maxlen, -1)\n"
-      script += "    end\n"
-      script += "end\n"
-      return script
-    end
-
-    def generate_ltrim_script(key, maxlen, order)
-      script  = "local key = '" + key.to_s + "'\n"
-      script += "local maxlen = " + maxlen.to_s + "\n"
-      script += "local order ='" + order.to_s + "'\n"
-      script += "local len = tonumber(redis.call('LLEN', key))\n"
-      script += "if len > maxlen then\n"
-      script += "    if order == 'asc' then\n"
-      script += "        local l = len - maxlen\n"
-      script += "        return redis.call('LTRIM', key, l, -1)\n"
-      script += "    else\n"
-      script += "        return redis.call('LTRIM', key, 0, maxlen - 1)\n"
-      script += "    end\n"
-      script += "end\n"
-      return script
     end
 
     def traverse(data, key)
