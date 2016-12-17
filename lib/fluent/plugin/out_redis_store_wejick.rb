@@ -28,6 +28,8 @@ module Fluent
     config_param :string_tolow,      :integer, :default => 0
     config_param :string_unescape,   :integer, :default => 0
     config_param :string_unescape_twice,   :integer, :default => 0
+    config_param :string_escape_html,:integer, :default => 0
+    config_param :filter_html_tag,   :integer, :default => 0
 
     def initialize
       super
@@ -107,6 +109,12 @@ module Fluent
           value = unescape_string(value)
         end
       end
+      if 0 < @string_escape_html
+        value = escape_html(value)
+      end
+      if 0 < @filter_html_tag
+        value = filter_html_tag(value)
+      end
       if 0 < @only_alphanumeric
         if ( /^[a-zA-Z0-9 ]*$/.match(value) ) != nil
         else
@@ -146,6 +154,12 @@ module Fluent
         if 0 <@string_unescape_twice
           value = unescape_string(value)
         end
+      end
+      if 0 < @string_escape_html
+        value = escape_html(value)
+      end
+      if 0 < @filter_html_tag
+        value = filter_html_tag(value)
       end
       if 0 < @only_alphanumeric
         if ( /^[a-zA-Z0-9 ]*$/.match(value) ) != nil
@@ -187,6 +201,20 @@ module Fluent
 
     def unescape_string(string)
       string = CGI.unescape(string)
+      return string
+    end
+
+    def escape_html(string)
+      string = CGI::escapeHTML(string)
+      return string
+    end
+
+    def filter_html_tag(string)
+      string = string.gsub("&","")
+      string = string.gsub("<","")
+      string = string.gsub(">","")
+      string = string.gsub("'","")
+      string = string.gsub("\"","")
       return string
     end
 

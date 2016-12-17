@@ -122,14 +122,16 @@ No more options than common options.
 
 ### `list` storage specific options
 
-| Key     | Type   | Default                  | Description                         |
-| :----   | :----- | :----------------------- | :------------                       |
-| `order` | string | asc                      | `asc`: **rpush**, `desc`: **lpush** |
-| `prevent_duplicate` | (0,1) | 0             | Prevent duplicated value in one key (list)           |
-| `string_tolow`	    | (0,1)  | 0            | value to lowercase                  |
-| `string_unescape`	  | (0,1)  | 0            | unescape value                      |
-| `string_unescape_twice`	| (0,1)  | 0        | in you need another unescape        |
-| `value_length`      | (0,1)                 | list trimming doesn't honor ordering |
+| Key                 | Type   | Default      | Description                         |
+| :------------------ | :----- | :----------- | :------------                       |
+| `order`             | string | asc          | `asc`: **rpush**, `desc`: **lpush** |
+| `prevent_duplicate` | (0,1)  | 0            | Prevent duplicated value in one key (list) |
+| `string_tolow`	  | (0,1)  | 0            | value to lowercase                   |
+| `string_unescape`	  | (0,1)  | 0            | unescape value                       |
+| `string_unescape_twice` | (0,1)  | 0        | if you need another unescape         |
+| `escape_html_tag`   | (0,1)  | 0            | escape html tag                      |
+| `filter_html_tag`   | (0,1)  | 0            | replace <>'"& with empty character   |
+| `value_length`      | (0,1)  |              | list trimming doesn't honor ordering |
 
 ### `set` storage specific options
 
@@ -137,15 +139,17 @@ No more options than common options.
 
 ### `zset` storage specific options
 
-| Key            | Type   | Default                  | Description                                  |
-| :----          | :----- | :----------------------- | :------------                                |
-| `score_path`   | string | (_time_ of log event)    | path to lookup for _score_ in the event data |
-| `value_expire` | int    |                          | value expiration in seconds                  |
-| `prevent_duplicate` | (0,1) | 0             | Prevent duplicated value in one key (list)           |
-| `string_tolow`	    | (0,1)  | 0            | value to lowercase                  |
-| `string_unescape`	  | (0,1)  | 0            | unescape value                      |
-| `string_unescape_twice`	| (0,1)  | 0        | in you need another unescape        |
-| `value_length`      | (0,1)                 | z trimming doesn't honor ordering |
+| Key                  | Type   | Default                  | Description                                  |
+| :----               | :-----  | :----------------------- | :------------                                |
+| `score_path`        | string  | (_time_ of log event)    | path to lookup for _score_ in the event data |
+| `value_expire`      | int     |                          | value expiration in seconds                  |
+| `prevent_duplicate` | (0,1)   | 0                        | Prevent duplicated value in one key (list)   |
+| `string_tolow`	  | (0,1)   | 0                        | value to lowercase                           |
+| `string_unescape`	  | (0,1)   | 0                        | unescape value                               |
+| `string_unescape_twice` | (0,1)  | 0                     | in you need another unescape                 |
+| `escape_html_tag`   | (0,1)   | 0                        | escape html tag                              |
+| `filter_html_tag`   | (0,1)   | 0                        | replace <>'"& with empty character           |
+| `value_length`      | (0,1)   |                          | z trimming doesn't honor ordering            |
 
 If `value_expire` is set, the plugin assumes that the _score_ in the **SortedSet** is
 based on *timestamp* and it deletes expired _members_ every after new event data arrives.
