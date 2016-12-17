@@ -29,7 +29,7 @@ module Fluent
     config_param :string_unescape,   :integer, :default => 0
     config_param :string_unescape_twice,   :integer, :default => 0
     config_param :string_escape_html,:integer, :default => 0
-    config_param :filter_html_tag,   :integer, :default => 0
+    config_param :filter_html,   :integer, :default => 0
 
     def initialize
       super
