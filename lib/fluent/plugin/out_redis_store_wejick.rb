@@ -112,7 +112,7 @@ module Fluent
       if 0 < @string_escape_html
         value = escape_html(value)
       end
-      if 0 < @filter_html_tag
+      if 0 < @filter_html
         value = filter_html_tag(value)
       end
       if 0 < @only_alphanumeric
@@ -158,7 +158,7 @@ module Fluent
       if 0 < @string_escape_html
         value = escape_html(value)
       end
-      if 0 < @filter_html_tag
+      if 0 < @filter_html
         value = filter_html_tag(value)
       end
       if 0 < @only_alphanumeric
